@@ -7,7 +7,7 @@ const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 router.post("/", async (req, res) => {
   const { cvData, role } = req.body;
 
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+  const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
   const result = await model.generateContent(
     `Compare CV with role ${role}. Return JSON with match_score and missing_skills.\n${cvData}`
   );
