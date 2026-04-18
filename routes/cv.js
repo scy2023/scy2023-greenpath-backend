@@ -1,6 +1,6 @@
 import express from "express";
 import multer from "multer";
-import pdfParse from "pdf-parse";
+import { default as pdfParse } from "pdf-parse/lib/pdf-parse.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
