@@ -22,5 +22,31 @@ router.post("/login", async (req, res) => {
   const token = jwt.sign({ id: user.rows[0].id }, process.env.JWT_SECRET);
   res.json({ token });
 });
+import pkg2 from "google-auth-library";
+const { OAuth2Client } = pkg2;
+const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+
+router.post("/google", async (req, res) => {
+  try {
+    const { token } = req.body;
+    const ticket = await client.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    });
+    const { email, name } = ticket.getPayload();
+    let user = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    if (user.rows.length === 0) {
+      await pool.query(
+        "INSERT INTO users (email, password_hash) VALUES ($1,$2)",
+        [email, "google-auth"]
+      );
+      user = await pool.query("SELECT * FROM users WHERE email=$1", [email]);
+    }
+    const jwtToken = jwt.sign({ id: user.rows[0].id }, process.env.JWT_SECRET);
+    res.json({ token: jwtToken });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 export default router;
