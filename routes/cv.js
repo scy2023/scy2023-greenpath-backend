@@ -1,14 +1,12 @@
 import express from "express";
 import multer from "multer";
-import { default as pdfParse } from "pdf-parse/lib/pdf-parse.js";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
 
 router.post("/upload", upload.single("cv"), async (req, res) => {
   try {
-    const pdf = await pdfParse(req.file.buffer);
-    const text = pdf.text.slice(0, 3000);
+    const text = req.file.buffer.toString("utf-8").slice(0, 3000);
 
     const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
       method: "POST",
@@ -20,7 +18,7 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
         model: "llama3-8b-8192",
         messages: [{
           role: "user",
-          content: `Extract skills, experience and education from this CV. Return as JSON only: {"skills": [], "experience": [], "education": []}\n\nCV:\n${text}`
+          content: `Extract skills, experience and education from this CV text. Return as JSON only: {"skills": [], "experience": [], "education": []}\n\nCV:\n${text}`
         }]
       })
     });
