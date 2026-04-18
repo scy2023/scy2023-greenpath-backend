@@ -23,7 +23,8 @@ router.post("/", async (req, res) => {
 
     const data = await response.json();
     const text = data.choices[0].message.content;
-    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+    const cleaned = text.replace(/```json|```/g, "").trim();
+const json = JSON.parse(cleaned.match(/\{[\s\S]*\}/)[0]);
     res.json(json);
   } catch (err) {
     console.error("Analyze Error:", err.message);
