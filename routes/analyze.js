@@ -7,17 +7,13 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 router.post("/", async (req, res) => {
   try {
     const { cvData, role } = req.body;
-
     const result = await groq.chat.completions.create({
-      model: "llama3-8b-8192",
-      messages: [
-        {
-          role: "user",
-          content: `Compare this CV with the role "${role}". Return ONLY valid JSON with match_score (0-100) and missing_skills (array).\n\nCV:\n${cvData}`,
-        },
-      ],
+      model: "llama3-70b-8192",
+      messages: [{
+        role: "user",
+        content: `Compare this CV with the role "${role}". Return ONLY a JSON object with match_score (number 0-100) and missing_skills (array of strings). No extra text.\n\nCV:\n${cvData}`
+      }],
     });
-
     const text = result.choices[0].message.content;
     const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
     res.json(json);
