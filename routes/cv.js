@@ -7,7 +7,6 @@ const upload = multer({ storage: multer.memoryStorage() });
 router.post("/upload", upload.single("cv"), async (req, res) => {
   try {
     const text = req.file.buffer.toString("utf-8");
-
     const response = await fetch("https://api.deepseek.com/chat/completions", {
       method: "POST",
       headers: {
@@ -19,7 +18,6 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
         messages: [{ role: "user", content: `Extract skills from this CV:\n${text}` }]
       })
     });
-
     const data = await response.json();
     res.json({ cvData: data.choices[0].message.content });
   } catch (err) {
