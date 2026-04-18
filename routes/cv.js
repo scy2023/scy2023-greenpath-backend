@@ -19,7 +19,9 @@ router.post("/upload", upload.single("cv"), async (req, res) => {
       })
     });
     const data = await response.json();
-    res.json({ cvData: data.choices[0].message.content });
+    console.log("DeepSeek response:", JSON.stringify(data));
+if (!data.choices) return res.status(500).json({ error: "API error", details: data });
+res.json({ cvData: data.choices[0].message.content });
   } catch (err) {
     console.error("CV Error:", err.message);
     res.status(500).json({ error: err.message });
