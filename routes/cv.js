@@ -1,7 +1,7 @@
 import express from "express";
 import multer from "multer";
 import Groq from "groq-sdk";
-import pdfParse from "pdf-parse/lib/pdf-parse.js";
+import pdf from "pdf-parse";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
@@ -10,11 +10,11 @@ const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 router.post("/upload", upload.single("cv"), async (req, res) => {
   try {
-    // ✅ Parse PDF properly
-    const pdf = await pdfParse(req.file.buffer);
-    const text = pdf.text;
+    // ✅ Correct PDF parsing
+    const data = await pdf(req.file.buffer);
+    const text = data.text;
 
-    // ✅ Use working model
+    // ✅ Use valid model
     const result = await groq.chat.completions.create({
       model: "llama-3.1-8b-instant",
       messages: [
