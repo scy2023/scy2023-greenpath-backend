@@ -1,30 +1,26 @@
 import express from "express";
+import Groq from "groq-sdk";
 
 const router = express.Router();
+const groq = new Groq({ apiKey: process.env.GROQ_API_KEY });
 
 router.post("/", async (req, res) => {
   try {
     const { cvData, role } = req.body;
 
-    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({
-        model: "llama3-8b-8192",
-        messages: [{
+    const result = await groq.chat.completions.create({
+      model: "llama3-8b-8192",
+      messages: [
+        {
           role: "user",
-          content: `Compare this CV with the role: ${role}. CV: ${cvData}. Respond with ONLY valid JSON: {"match_score": 75, "missing_skills": ["Python", "AWS"]}`
-        }]
-      })
+          content: `Compare this CV with the role "${role}". Return ONLY valid JSON with match_score (0-100) and missing_skills (array).\n\nCV:\n${cvData}`,
+        },
+      ],
     });
 
-    const data = await response.json();
-    const raw = data.choices[0].message.content;
-    const clean = raw.replace(/```json|```/g, "").trim();
-    res.json(JSON.parse(clean));
+    const text = result.choices[0].message.content;
+    const json = JSON.parse(text.match(/\{[\s\S]*\}/)[0]);
+    res.json(json);
   } catch (err) {
     console.error("Analyze Error:", err.message);
     res.status(500).json({ error: err.message });
