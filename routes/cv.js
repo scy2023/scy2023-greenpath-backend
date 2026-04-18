@@ -1,24 +1,32 @@
 import express from "express";
 import multer from "multer";
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import pdfParse from "pdf-parse";
 
 const router = express.Router();
 const upload = multer({ storage: multer.memoryStorage() });
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 router.post("/upload", upload.single("cv"), async (req, res) => {
   try {
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
-    const result = await model.generateContent([
-      {
-        inlineData: {
-          mimeType: "application/pdf",
-          data: req.file.buffer.toString("base64")
-        }
+    const pdf = await pdfParse(req.file.buffer);
+    const text = pdf.text.slice(0, 3000);
+
+    const response = await fetch("https://api.groq.com/openai/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${process.env.GROQ_API_KEY}`,
+        "Content-Type": "application/json"
       },
-      "Extract skills, experience and education from this CV. Return as JSON only: {\"skills\": [], \"experience\": [], \"education\": []}"
-    ]);
-    const raw = result.response.text();
+      body: JSON.stringify({
+        model: "llama3-8b-8192",
+        messages: [{
+          role: "user",
+          content: `Extract skills, experience and education from this CV. Return as JSON only: {"skills": [], "experience": [], "education": []}\n\nCV:\n${text}`
+        }]
+      })
+    });
+
+    const data = await response.json();
+    const raw = data.choices[0].message.content;
     const clean = raw.replace(/```json|```/g, "").trim();
     res.json({ cvData: clean });
   } catch (err) {
