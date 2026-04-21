@@ -7,6 +7,7 @@ import cvRoutes from "./routes/cv.js";
 import analyzeRoutes from "./routes/analyze.js";
 import paymentRoutes from "./routes/payment.js";
 import jobRoutes from "./routes/jobs.js";
+import cvBuilderRoutes from "./routes/cv-builder.js";
 
 dotenv.config();
 
@@ -22,5 +23,6 @@ app.use("/api/cv", cvRoutes);
 app.use("/api/analyze", analyzeRoutes);
 app.use("/api/payment", paymentRoutes);
 app.use("/api/jobs", jobRoutes);
+app.use("/api/cv-builder", cvBuilderRoutes);
 
 app.listen(5000, () => console.log("Server running on port 5000"));
